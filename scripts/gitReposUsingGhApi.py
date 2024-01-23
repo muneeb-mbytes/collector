@@ -3,7 +3,21 @@ import json
 import os
 import pandas as pd
 
-
+def removeTimestamp(df):
+    #get DateValues
+    a=[]
+    for i in df.iloc[:,0]:
+        a.append(i)
+    #remove timestamp
+    j=0
+    for i in a:
+        s=i[0:10]
+        a[j]=s
+        j+=1;
+    #save without Timestamp in df
+    for i in range(len(df.iloc[:,0])):
+        df.iloc[i:,0]=a[i]
+        
 def updateData(reponame):
     #update data
     print("Project Name:",reponame)
@@ -23,8 +37,9 @@ def updateData(reponame):
     try :
         data = pd.read_csv(csv_name,header=None)
         oldData = pd.read_csv(old_csv_name,header=None)
-        newdata=pd.merge(data,oldData)
+        newdata=pd.merge(oldData,data)
         newCleanData=newdata.drop_duplicates(keep='last')
+        removeTimestamp(newCleanData)
         removePath="rm "+old_csv_name
         os.system(removePath)
         newCleanData.to_csv("../csvOutput/" +reponame+".csv", mode='a', index=False, header=False)
@@ -51,7 +66,7 @@ def freshData(reponame):
 
 #username = input("Enter the github username:")
 username = 'muneeb-mbytes'
-path = '/home/axyrai/tools/github_db/csvOutput/'
+path = '/home/axyrai/tools/collector/csvOutput/'
 request = requests.get('https://api.github.com/users/'+username+'/repos?per_page=1000')
 JsonData = request.json()
 
