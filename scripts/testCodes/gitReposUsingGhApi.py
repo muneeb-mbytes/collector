@@ -2,6 +2,8 @@ import requests
 import json
 import os
 import pandas as pd
+from datetime import date,timedelta
+
 
 def removeTimestamp(df):
     #get DateValues
@@ -34,7 +36,25 @@ def updateData(reponame):
     #csv to dictionary
     csv_name="../csvOutput/csvUpdateData/"+reponame+".csv"
     old_csv_name = "../csvOutput/"+reponame+".csv"
-    try :
+    if(os.stat(old_csv_name).st_size == 0):
+        print("emptyfile -",reponame)
+        #get 14 days dates
+        a=[]
+        today=date.today()
+        for i in range(15,0,-1):
+            b=[]
+            newdate=str(today-timedelta(i))
+            b.append(newdate)
+            b.append(0)
+            b.append(0)
+            a.append(b)
+        zeroes=pd.DataFrame(columns=['Date', 'views','unique'])
+        for i in range(len(a)):
+            zeroes.loc[len(zeroes)]=a[i]
+        removePath="rm "+old_csv_name
+        os.system(removePath)   
+        zeroes.to_csv("../csvOutput/" +reponame+".csv", mode='a', index=False, header=True)
+    else:
         data = pd.read_csv(csv_name,header=None)
         oldData = pd.read_csv(old_csv_name,header=None)
         newdata=pd.merge(oldData,data)
@@ -43,15 +63,13 @@ def updateData(reponame):
         removePath="rm "+old_csv_name
         os.system(removePath)
         newCleanData.to_csv("../csvOutput/" +reponame+".csv", mode='a', index=False, header=False)
-       
-    except :
-        print("emptyfile -",reponame)
     
     os.system("rm ../csvOutput/csvUpdateData/*")
     os.system("rm ../jsonOutput/jsonUpdateData/*")
 
 
 def freshData(reponame):
+    #print("inside fresh")
     # Create the json files for the traffic data
     print("Project Name:",reponame)
     stri = 'gh api repos/' +username+ '/' +reponame+ '/traffic/views --method GET > ../jsonOutput/' +reponame+ '.json'
