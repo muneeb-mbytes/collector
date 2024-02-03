@@ -3,9 +3,62 @@ import requests
 import json
 import os
 import pandas as pd
-from datetime import date,timedelta
+from datetime import date,timedelta,datetime
 import time
 
+def appendcurrDate(days,views,unique,df):
+    a=[]
+    a.append(str(days))
+    a.append(views)
+    a.append(unique)
+    df.loc[len(df)]=a
+    
+def appendprevDate(startDay,diffDay,df):
+    while(diffDay>1):
+        a=[]
+        startDay=startDay+timedelta(days=1)
+        a.append(str(startDay))
+        a.append(0)
+        a.append(0)
+        df.loc[len(df)]=a
+        # print("prev Data")
+        # print(startDay," 0   0 ")
+        diffDay-=1
+
+def appendMissingDates(reponame):
+    prevDate=0;
+    df=pd.read_csv(old_csv_name,header=None)
+    newdf=pd.DataFrame(columns=['Date', 'views','unique'])
+    currDates=[]
+    for i in df.iloc[:,0]:
+        currDate=datetime.strptime(i,'%Y-%m-%d').date()
+        currDates.append(currDate)
+    i=0
+    count=0
+    for i in range(len(currDates)):
+        views=df.iloc[i,1]
+        unique=df.iloc[i,2]
+        if(count>=len(currDates)):
+            break
+
+        elif(i==0):
+            appendcurrDate(currDates[i],views,unique,newdf)
+            count+=1
+        else:
+            dayDiff=currDates[i]-currDates[i-1]
+            diffDay=dayDiff.days
+            if(diffDay==1):
+                appendcurrDate(currDates[i],views,unique,newdf)
+                count+=1
+
+            else:
+                appendprevDate(currDates[i-1],diffDay,newdf)
+                appendcurrDate(currDates[i],views,unique,newdf)
+    removePath="rm "+old_csv_name
+    os.system(removePath)
+    newdf.to_csv(old_csv_name, mode='a', index=False, header=False)
+    
+    
 def zeroesToEmptyFile(reponame,flag):
     a=[]
     today=date.today()
@@ -26,10 +79,10 @@ def zeroesToEmptyFile(reponame,flag):
         if(os.path.exists(old_csv_name)):
             removePath="rm "+old_csv_name
             os.system(removePath)  
-        zeroes.to_csv("../csvOutput/" +reponame+".csv", mode='a', index=False, header=True)
+        zeroes.to_csv("../csvOutput/" +reponame+".csv", mode='a', index=False, header=False)
     else:
         #update data
-        zeroes.to_csv("../csvOutput/csvUpdateData/" +reponame+".csv", mode='a', index=False, header=True)
+        zeroes.to_csv("../csvOutput/csvUpdateData/" +reponame+".csv", mode='a', index=False, header=False)
             
 def removeTimestamp(df):
     a=[]
@@ -102,6 +155,7 @@ def updateData(reponame):
     df.to_csv("../csvOutput/csvUpdateData/" +reponame+".csv", mode='a', index=False, header=False)
     #print("removed timestamp")
     merge_csv(reponame)
+    appendMissingDates(reponame)
 
 
 username = 'muneeb-mbytes'
