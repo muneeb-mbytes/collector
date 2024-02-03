@@ -4,9 +4,7 @@ import os
 import pandas as pd
 from datetime import date,timedelta
 
-def zeroesToEmptyFile(reponame):
-    
-    
+
 def removeTimestamp(df):
     #get DateValues
     a=[]
