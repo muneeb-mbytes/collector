@@ -5,6 +5,69 @@ import os
 import pandas as pd
 from datetime import date,timedelta,datetime
 import time
+from enum import Enum
+
+class month(Enum):
+    Jan="01"
+    Feb="02"
+    Mar ="03"
+    Apr="04"
+    May="05"
+    Jun="06"
+    Jul="07"
+    Aug="08"
+    Sep="09"
+    Oct="10"
+    Nov="11"
+    Dec="12"
+    
+def createFolder(folderName):
+    os.system("mkdir "+folderName)
+
+def sortDataMonthWise(folderName,data,reponame):
+    filePath=folderName+"/"+reponame+".csv"
+    if(os.path.exists(filePath)):
+        #print("file exists")
+        df = pd.read_csv(filePath,header=None)
+        df.loc[len(df)]=data
+        df=df.drop_duplicates(keep='last')
+        os.system("rm "+filePath)
+        df.to_csv(filePath, mode='a', index=False, header=False)
+        #read_csv
+        #appendData
+        #deleteOldFile
+        #toCSV
+
+    else:
+        #print("file does not exist")
+        df=pd.DataFrame(columns=['Date', 'views','unique'])
+        df.loc[len(df)]=data
+        df.to_csv(filePath, mode='a', index=False, header=False)
+
+def sortData(reponame):
+    df = pd.read_csv("../csvOutput/"+reponame+".csv",header=None)
+    index=0
+    for i in df.iloc[:,0]:
+        year=i[0:4]
+        monthname=i[5:7]
+        monthname=month(monthname).name
+        folderName=monthname+year
+        pathToFolder="../sortedData/" +folderName
+        views=df.iloc[index,1]
+        unique=df.iloc[index,2]
+        data=[i,views,unique]
+        #print(folderName)
+        if(os.path.exists(pathToFolder)):
+            flag = 1
+            #print("already exists")
+            sortDataMonthWise(pathToFolder,data,reponame)
+        else:
+            flag = 0
+            #print("doesnt exist")
+            createFolder(pathToFolder)
+            sortDataMonthWise(pathToFolder,data,reponame)
+    
+        index+=1
 
 def appendcurrDate(days,views,unique,df):
     a=[]
@@ -139,6 +202,9 @@ def freshData(reponame):
     df=pd.read_csv(old_csv_name,header=None)
     df=removeTimestamp(df)
     df.to_csv("../csvOutput/" +reponame+".csv", mode='a', index=False, header=False)
+    #sortData(reponame)
+    #os.system("rm ../csvOutput/*.csv")
+    
 
 def updateData(reponame):
     flag=1
@@ -156,6 +222,8 @@ def updateData(reponame):
     #print("removed timestamp")
     merge_csv(reponame)
     appendMissingDates(reponame)
+    sortData(reponame)
+    #os.system("rm ../csvOutput/*.csv")
 
 
 username = 'muneeb-mbytes'
@@ -184,5 +252,5 @@ for i in range(0,len(repoNames)):
         freshData(reponame);
         
         
-#os.system("rm ../csvOutput/csvUpdateData/*")
+os.system("rm ../csvOutput/csvUpdateData/*")
 os.system("rm ../jsonOutput/jsonUpdateData/*")
