@@ -18,10 +18,11 @@ def trafficPlot(repoPath,reponame,folderName):
     plt.ylabel('Views')
     plt.title(reponame)
     plt.legend()
-    try:
+    folderPath="../Graphs/"+folderName
+    if(os.path.exists(folderPath)==0) :
         os.system("mkdir ../Graphs/"+folderName)
-    except:
-        print("graphfolder already exists")
+    #except:
+        #print("graphfolder already exists")
     plt.savefig("../Graphs/"+folderName+"/"+reponame+".png")
     
 if len(sys.argv)==3:
