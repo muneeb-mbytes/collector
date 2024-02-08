@@ -24,6 +24,7 @@ def trafficPlot(repoPath,reponame,folderName):
     #except:
         #print("graphfolder already exists")
     plt.savefig("../Graphs/"+folderName+"/"+reponame+".png")
+    plt.show()
     
 if len(sys.argv)==3:
     reponame=sys.argv[2]
